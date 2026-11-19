@@ -39,10 +39,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install community YAML parser
+        run: python -m pip install PyYAML==6.0.3
       - name: Validate CCF catalogue
         run: python scripts/validate_data.py
       - name: Test official CFP adapter
         run: python -m unittest discover -s tests -v
+      - name: Test conference card interaction
+        run: node --test tests/test-conference-cards.cjs
       - name: Restore last valid official snapshot
         uses: actions/cache/restore@v4
         with:
@@ -56,6 +60,21 @@ jobs:
         with:
           path: public/data/hpdc-2027.json
           key: hpdc-2027-v1-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Restore community deadline snapshot
+        uses: actions/cache/restore@v4
+        with:
+          path: public/data/conference-deadlines.json
+          key: conference-deadlines-v1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: conference-deadlines-v1-
+      - name: Refresh community conference deadlines
+        run: python scripts/refresh_conference_deadlines.py
+      - name: Validate community deadline snapshot
+        run: python scripts/refresh_conference_deadlines.py --validate-only
+      - name: Preserve community snapshot
+        uses: actions/cache/save@v4
+        with:
+          path: public/data/conference-deadlines.json
+          key: conference-deadlines-v1-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Stage public files only
@@ -63,6 +82,7 @@ jobs:
           mkdir -p _site
           cp index.html _site/
           cp -R css js public _site/
+          cp -R docs/licenses _site/
           if [ -f CNAME ]; then cp CNAME _site/; fi
           if [ -f .nojekyll ]; then cp .nojekyll _site/; fi
       - name: Upload artifact

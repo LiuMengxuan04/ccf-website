@@ -297,6 +297,8 @@ class CCFDirectory {
             </div>
         `;
 
+        if (type === 'conference') window.ConferenceDeadlines?.attach(div, item);
+
         // 添加点击事件
         div.addEventListener('click', () => {
             if (item.website) window.open(item.website, '_blank', 'noopener,noreferrer');

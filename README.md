@@ -190,3 +190,21 @@ ccf-website/
 - 重建：安装 `PyMuPDF==1.26.6` 后执行 `python scripts/import_ccf_pdf.py /path/to/official.pdf`。
 - 校验：`python scripts/validate_data.py`；`node --check js/main.js`。
 - 目录限正式长文/Regular paper；Short、Demo、Workshop、Findings 等不在该目录的会议论文范围内。该目录是投稿推荐，不宜作为单一成果评价依据。
+
+### 逐会议日期：CCFDDL 社区数据
+
+`public/data/conference-deadlines.json` 由 [CCFDDL](https://github.com/ccfddl/ccf-deadlines) 社区目录生成，遵循 MIT 许可（原版权及许可见 `docs/licenses/CCFDDL-MIT.txt`）。这与 CCF 等级的官方数据来源不同，也不是逐条官网核验的日程。HPDC 继续优先使用独立官方快照。
+
+采用 **DBLP 路径 + 规范化会议缩写双重匹配**，不把混合会议/track 自动映射给单个会议。每个系列保留上游最新届次、edition ID、全部轮次、摘要/全文/通知/rebuttal、原时区、会议日期和地点。过期届次保留原年份，缺失项目留空，不推算下一届。上游有时按自身约定填入 AoE 或 23:59:59，因此应以会议官网为准。会议主页链接不当作投稿系统链接。
+
+定时工作流先解析 GitHub 的 upstream commit SHA，然后下载该固定版本的 archive；每条保留 commit 固定链接。使用原子写入；覆盖不足 200 条或比上次缩水超过 10% 时拒绝替换。解析/网络失败会保留最后有效记录并标记 `refresh_status: stale`；Actions cache 支持跨次运行回退，没有缓存则使用随仓库提交的快照。若连旧快照也无效则停止部署。权限仍为 contents: read / pages: write / id-token: write。
+
+```sh
+python -m pip install PyYAML==6.0.3
+python scripts/refresh_conference_deadlines.py
+python scripts/refresh_conference_deadlines.py --validate-only
+# 可复现特定 checkout：
+python scripts/refresh_conference_deadlines.py --source-dir /path/to/ccf-deadlines --revision <40位commit-SHA>
+```
+
+Schema v1：`conferences[]` 包含 `catalogue_ids`（官方目录稳定 ID）、`acronym`、`year`、`edition_id`、`rounds[].dates`。只有一个轮次时 `dates` 才提供同一份日期；多个轮次时 `dates` 为空，前端必须展示各轮次。`verified_at` 固定为 null，`fetched_at` 仅指拉取时间；`source_kind: community` 不可显示成“官方已核验”。
