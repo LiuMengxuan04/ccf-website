@@ -64,7 +64,9 @@
       const sources = el('p', record.source_kind === 'community' ? '参考来源：' : '官方来源：'); record.sources.forEach((url,i) => { if (i) sources.append(document.createTextNode(' · ')); sources.append(link(`来源 ${i+1} ↗`,url)); }); body.append(sources);
       body.append(el('small',`${record.source_kind === 'community' ? '社区数据获取：'+record.fetched_at : '核验时间：'+record.verified_at} · 信息变更：${record.updated_at || record.verified_at || record.fetched_at}`));
       if (record.checked_at) body.append(el('small',`最近检查：${record.checked_at}`));
-      if (record.refresh_status === 'failed' || Date.now()-Date.parse(record.verified_at || record.fetched_at)>3*86400000) body.append(el('p','刷新失败或核验已超过 3 天，当前为最后有效记录，请核对来源。','deadline-warning'));
+      const refreshFailed = ['failed', 'stale'].includes(record.refresh_status);
+      if (refreshFailed) body.append(el('p','本次刷新失败，当前为最后有效记录，请核对来源。','deadline-warning'));
+      else if (Date.now()-Date.parse(record.verified_at || record.fetched_at)>3*86400000) body.append(el('p','距离上次成功更新已超过 3 天，当前为最后有效记录，请核对来源。','deadline-warning'));
     }
   }
   api.attach = function(card,item) {

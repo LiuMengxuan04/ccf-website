@@ -19,8 +19,15 @@ class Element {
  get text(){return this.textContent+this.children.map(c=>typeof c==='string'?c:c.text).join(' ');}
 }
 const document={createElement:tag=>new Element(tag),createTextNode:text=>text};
-const window={document};
-vm.runInNewContext(fs.readFileSync('js/conference-updates.js','utf8'),{window,document,URL,Date,console,fetch:async url=>({ok:true,json:async()=>url.includes('hpdc')?hpdc:{schema_version:1,conferences:[community]}})});
+const script = fs.readFileSync('js/conference-updates.js','utf8');
+class FixtureDate extends Date { static now(){ return Date.parse('2026-11-19T09:00:00Z'); } }
+function browserFixture(refresh_status, fetched_at = community.fetched_at) {
+ const window={document};
+ const snapshot={schema_version:1,refresh_status,checked_at:'2026-11-19T08:00:00Z',conferences:[{...community,fetched_at}]};
+ vm.runInNewContext(script,{window,document,URL,Date:FixtureDate,console,fetch:async url=>({ok:true,json:async()=>url.includes('hpdc')?hpdc:snapshot})});
+ return window.ConferenceDeadlines;
+}
+const window={ConferenceDeadlines:browserFixture('ok')};
 (async()=>{
  const cards=[new Element('div'),new Element('div'),new Element('div')];
  window.ConferenceDeadlines.attach(cards[0],{abbr:'HPDC',id:'HPDC'});
@@ -30,6 +37,14 @@ vm.runInNewContext(fs.readFileSync('js/conference-updates.js','utf8'),{window,do
  assert.match(cards[0].text,/2027-01-18/);assert.match(cards[0].text,/核验时间/);
  assert.match(cards[1].text,/暂无核实数据/);assert.doesNotMatch(cards[1].text,/未公布/);
  assert.match(cards[2].text,/2 轮投稿/);assert.match(cards[2].text,/Spring/);assert.match(cards[2].text,/Fall/);assert.match(cards[2].text,/社区整理/);
+ assert.doesNotMatch(cards[2].text,/deadline-warning|刷新失败/);
+ for (const [status,fetchedAt] of [['stale',community.fetched_at],['failed',community.fetched_at],['ok','2026-11-15T00:00:00Z']]) {
+  const cached=new Element('div');
+  browserFixture(status,fetchedAt).attach(cached,{abbr:'alias',id:123});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.match(cached.text,/最近检查：2026-11-19T08:00:00Z/);
+  assert.match(cached.text,/当前为最后有效记录/, status + ' · ' + fetchedAt);
+ }
  let stopped=false;cards[0].children[0].listeners.click({stopPropagation(){stopped=true}});assert.ok(stopped);
  // New cards made by search/filter receive their own details; removed old cards don't affect them.
  const repeated=new Element('div');window.ConferenceDeadlines.attach(repeated,{abbr:'HPDC',id:'HPDC'});

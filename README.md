@@ -22,16 +22,9 @@
 
 ### 部署到GitHub Pages
 
-1. **Fork项目**
-   ```bash
-   # 将项目文件上传到您的GitHub仓库
-   ```
-
-2. **启用GitHub Pages**
-   - 进入仓库 Settings → Pages
-   - 选择 Source: Deploy from a branch
-   - 选择 Branch: main / (root)
-   - 点击 Save
+1. **Fork 项目**，然后在 fork 的 Actions 页启用工作流。
+2. **启用 GitHub Pages**：在 Settings → Pages → Build and deployment，将 Source 设为 **GitHub Actions**。
+   - 在 Actions 中手动运行一次 **Deploy static content to Pages**，确认通过后即可访问。之后推送到 `main` 会自动部署；定时更新每天北京时间 10:17 排程。
 
 3. **访问网站**
    ```
