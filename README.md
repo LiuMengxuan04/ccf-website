@@ -201,3 +201,5 @@ python scripts/refresh_conference_deadlines.py --source-dir /path/to/ccf-deadlin
 ```
 
 Schema v1：`conferences[]` 包含 `catalogue_ids`（官方目录稳定 ID）、`acronym`、`year`、`edition_id`、`rounds[].dates`。只有一个轮次时 `dates` 才提供同一份日期；多个轮次时 `dates` 为空，前端必须展示各轮次。`verified_at` 固定为 null，`fetched_at` 仅指拉取时间；`source_kind: community` 不可显示成“官方已核验”。
+
+`public/data/official-deadline-snapshots.json` 记录人工核验的会议官网日期，用于补足社区数据缺口。按目录 ID 与年份优先显示官网快照，同一会议的其他年份仍保留；较新的社区届次不会被旧版快照覆盖。快照标有核验日期，由人工复核维护；HPDC 与社区数据仍按原有流程定时抓取。

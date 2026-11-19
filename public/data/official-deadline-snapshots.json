@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "conferences": [
+    {
+      "acronym": "ATC",
+      "catalogue_ids": [
+        "acm_sigops_atc_usenix_atc_acm_sigops_annual_technical_conference_9e3446d7"
+      ],
+      "year": 2027,
+      "source_kind": "official_snapshot",
+      "verified_at": "2026-11-19",
+      "timezone": "AoE（投稿截止）",
+      "dates": {
+        "paper": "2027-01-19",
+        "rebuttal": "2027-04-05",
+        "notification": "2027-04-27",
+        "camera_ready": "2027-05-28"
+      },
+      "conference_date": "2027-06-28 至 2027-07-01",
+      "place": "法国雷恩",
+      "sources": [
+        "https://atc.sigops.org/2027/call-for-papers/"
+      ],
+      "submission": {
+        "status": "linked",
+        "url": "https://atc27.hotcrp.com/"
+      }
+    },
+    {
+      "acronym": "SC",
+      "catalogue_ids": [
+        "sc_international_conference_for_high_performance_computing_networking_storage_and_analysis_8163b21b"
+      ],
+      "year": 2027,
+      "source_kind": "official_snapshot",
+      "verified_at": "2026-11-19",
+      "timezone": "AoE（投稿截止）",
+      "dates": {
+        "abstract": "2027-03-25 23:59",
+        "paper": "2027-04-01 23:59",
+        "notification": "2027-07-01",
+        "camera_ready": "2027-08-30"
+      },
+      "conference_date": "2027-11-14 至 2027-11-19",
+      "place": "美国丹佛，Colorado Convention Center",
+      "sources": [
+        "https://sc27.supercomputing.org/all-dates-deadlines/",
+        "https://sc27.supercomputing.org/attendees/denver/"
+      ]
+    }
+  ]
+}

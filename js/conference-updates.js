@@ -14,11 +14,17 @@
     if ((!Object.keys(dates).length && !rounds.length && !item.conference_date) || !sources.length || !Number.isFinite(Date.parse(community ? item.fetched_at : item.verified_at))) return null;
     return {...item, acronym:item.acronym || item.conference, dates, rounds, sources};
   }
-  function records(general, hpdc) {
+  function records(general, hpdc, official) {
     const list = general?.schema_version === 1 && Array.isArray(general.conferences) ? general.conferences.map(r => normalize({...r, refresh_status:general.refresh_status, checked_at:general.checked_at})).filter(Boolean) : [];
     if (hpdc?.schema_version === 1 && hpdc.data?.conference === 'HPDC') {
       const h = normalize({...hpdc.data, verified_at:hpdc.verified_at, updated_at:hpdc.updated_at, checked_at:hpdc.checked_at, refresh_status:hpdc.refresh_status});
       if (h) { const i = list.findIndex(r => r.acronym === 'HPDC' && r.year === h.year); if (i < 0) list.push(h); else list[i] = h; }
+    }
+    if (official?.schema_version === 1 && Array.isArray(official.conferences)) {
+      for (const entry of official.conferences) {
+        const record = normalize({...entry, source_kind:'official_snapshot'});
+        if (record?.catalogue_ids?.length) list.push(record);
+      }
     }
     return list;
   }
@@ -28,23 +34,25 @@
   const el = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
   const link = (text, url) => { const a = el('a', text); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; return a; };
   const get = url => fetch(url, {cache:'no-cache'}).then(r => r.ok ? r.json() : null).catch(() => null);
-  const ready = Promise.all([get('public/data/conference-deadlines.json'), get('public/data/hpdc-2027.json')]).then(([a,b]) => records(a,b));
+  const ready = Promise.all([get('public/data/conference-deadlines.json'), get('public/data/hpdc-2027.json'), get('public/data/official-deadline-snapshots.json')]).then(([a,b,c]) => records(a,b,c));
   function populate(details, item, data) {
     const matches = data.filter(r => Array.isArray(r.catalogue_ids) ? r.catalogue_ids.map(String).includes(String(item.id)) : r.acronym === 'HPDC' && item.abbr === 'HPDC').sort((a,b) => b.year-a.year);
+    const officialYears = new Set(matches.filter(r => r.source_kind === 'official_snapshot').map(r => r.year));
+    const editions = matches.filter(r => r.source_kind !== 'community' || !officialYears.has(r.year));
     const past = value => Boolean(value) && Date.now()-Date.parse(value.slice(0,10)+'T00:00:00Z')>2*86400000;
     details.replaceChildren();
     const summary = el('summary', '', 'deadline-summary');
-    summary.append(el('span', matches.length ? `${matches[0].year} 投稿信息` : '投稿信息'));
-    const latest = matches[0];
+    summary.append(el('span', editions.length ? `${editions[0].year} 投稿信息` : '投稿信息'));
+    const latest = editions[0];
     const paper = latest?.dates.paper || latest?.rounds[0]?.dates.paper;
     const headline = !latest ? '暂无核实数据' : latest.rounds.length > 1 ? latest.rounds.length + ' 轮投稿 · 展开查看' : paper ? (past(paper) ? '全文（已过）：' : '全文：') + paper : latest.conference_date ? '会期：' + latest.conference_date : '全文日期暂无 · 展开查看';
     summary.append(el('strong', headline));
     details.append(summary);
     const body = el('div', '', 'deadline-body'); details.append(body);
-    if (!matches.length) body.append(el('p', '本站暂无已核实的届次与投稿日期。可通过下方原目录链接进一步查询。'));
-    for (const record of matches) {
+    if (!editions.length) body.append(el('p', '本站暂无已核实的届次与投稿日期。可通过下方原目录链接进一步查询。'));
+    for (const record of editions) {
       body.append(el('h4', `${record.acronym} ${record.year}`));
-      body.append(el('p',record.source_kind === 'community' ? '社区整理 · 尚未经本站逐项官方核实，时间以官网为准。' : '官方来源核验记录。', 'deadline-provenance'));
+      body.append(el('p',record.source_kind === 'community' ? '社区整理 · 尚未经本站逐项官方核实，时间以官网为准。' : record.source_kind === 'official_snapshot' ? '官网日期快照 · 以会议官网的最新公告为准。' : '官方来源核验记录。', 'deadline-provenance'));
       if (record.conference_date) body.append(el('p', '会议日期：' + record.conference_date));
       if (record.place) body.append(el('p', '地点：' + record.place));
       const rounds = record.rounds.length ? record.rounds : [{label:'投稿日期',dates:record.dates}];
@@ -62,11 +70,11 @@
       if (url && record.submission?.status === 'linked') body.append(link('官方列出的投稿入口 ↗',url),el('p','是否开放投稿请进入官方系统查看。'));
       else body.append(el('p','投稿入口：暂无核实链接。'));
       const sources = el('p', record.source_kind === 'community' ? '参考来源：' : '官方来源：'); record.sources.forEach((url,i) => { if (i) sources.append(document.createTextNode(' · ')); sources.append(link(`来源 ${i+1} ↗`,url)); }); body.append(sources);
-      body.append(el('small',`${record.source_kind === 'community' ? '社区数据获取：'+record.fetched_at : '核验时间：'+record.verified_at} · 信息变更：${record.updated_at || record.verified_at || record.fetched_at}`));
+      body.append(el('small',`${record.source_kind === 'community' ? '社区数据获取：'+record.fetched_at : '核验时间：'+record.verified_at} · ${record.source_kind === 'official_snapshot' ? '手动核验快照' : '信息变更：' + (record.updated_at || record.verified_at || record.fetched_at)}`));
       if (record.checked_at) body.append(el('small',`最近检查：${record.checked_at}`));
       const refreshFailed = ['failed', 'stale'].includes(record.refresh_status);
       if (refreshFailed) body.append(el('p','本次刷新失败，当前为最后有效记录，请核对来源。','deadline-warning'));
-      else if (Date.now()-Date.parse(record.verified_at || record.fetched_at)>3*86400000) body.append(el('p','距离上次成功更新已超过 3 天，当前为最后有效记录，请核对来源。','deadline-warning'));
+      else if (record.source_kind !== 'official_snapshot' && Date.now()-Date.parse(record.verified_at || record.fetched_at)>3*86400000) body.append(el('p','距离上次成功更新已超过 3 天，当前为最后有效记录，请核对来源。','deadline-warning'));
     }
   }
   api.attach = function(card,item) {

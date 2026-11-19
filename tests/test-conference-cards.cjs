@@ -1,6 +1,10 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), vm = require('node:vm');
 const api = require('../js/conference-updates.js');
+const official = JSON.parse(fs.readFileSync('public/data/official-deadline-snapshots.json'));
+const catalogue = JSON.parse(fs.readFileSync('public/data/ccf_complete.json')).data.conferences;
+assert.equal(api.records(null,null,official).length,2);
+assert.ok(official.conferences.every(r=>r.catalogue_ids.length===1 && catalogue.some(c=>r.catalogue_ids.includes(c.id))));
 const hpdc = JSON.parse(fs.readFileSync('public/data/hpdc-2027.json'));
 assert.equal(api.records(null,hpdc)[0].acronym,'HPDC');
 assert.equal(api.safeURL('javascript:alert(1)'),null);
@@ -21,10 +25,10 @@ class Element {
 const document={createElement:tag=>new Element(tag),createTextNode:text=>text};
 const script = fs.readFileSync('js/conference-updates.js','utf8');
 class FixtureDate extends Date { static now(){ return Date.parse('2026-11-19T09:00:00Z'); } }
-function browserFixture(refresh_status, fetched_at = community.fetched_at) {
+function browserFixture(refresh_status, fetched_at = community.fetched_at, extras = []) {
  const window={document};
- const snapshot={schema_version:1,refresh_status,checked_at:'2026-11-19T08:00:00Z',conferences:[{...community,fetched_at}]};
- vm.runInNewContext(script,{window,document,URL,Date:FixtureDate,console,fetch:async url=>({ok:true,json:async()=>url.includes('hpdc')?hpdc:snapshot})});
+ const snapshot={schema_version:1,refresh_status,checked_at:'2026-11-19T08:00:00Z',conferences:[{...community,fetched_at}, ...extras]};
+ vm.runInNewContext(script,{window,document,URL,Date:FixtureDate,console,fetch:async url=>({ok:true,json:async()=>url.includes('hpdc')?hpdc:url.includes('official-deadline')?official:snapshot})});
  return window.ConferenceDeadlines;
 }
 const window={ConferenceDeadlines:browserFixture('ok')};
@@ -45,6 +49,23 @@ const window={ConferenceDeadlines:browserFixture('ok')};
   assert.match(cached.text,/最近检查：2026-11-19T08:00:00Z/);
   assert.match(cached.text,/当前为最后有效记录/, status + ' · ' + fetchedAt);
  }
+ const [atc,sc]=official.conferences;
+ const scCommunity={...community,acronym:'SC',catalogue_ids:sc.catalogue_ids,rounds:[],dates:{paper:'2027-01-01'}};
+ const sourceFixture=browserFixture('ok',community.fetched_at,[{...scCommunity,year:2026},{...scCommunity,year:2027}]);
+ const atcCard=new Element('div'),scCard=new Element('div'),futureCard=new Element('div');
+ sourceFixture.attach(atcCard,{abbr:'ACM SIGOPS ATC（原USENIX ATC）',id:atc.catalogue_ids[0]});
+ sourceFixture.attach(scCard,{abbr:'SC',id:sc.catalogue_ids[0]});
+ browserFixture('ok',community.fetched_at,[{...scCommunity,year:2028,dates:{paper:'2028-04-01'}}]).attach(futureCard,{abbr:'SC',id:sc.catalogue_ids[0]});
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.match(atcCard.text,/全文：2027-01-19/);
+ assert.match(atcCard.text,/官方列出的投稿入口/);
+ assert.doesNotMatch(atcCard.text,/摘要注册/);
+ assert.match(scCard.text,/全文：2027-04-01 23:59/);
+ assert.match(scCard.text,/摘要注册 2027-03-25 23:59/);
+ assert.match(scCard.text,/官网日期快照/);
+ assert.match(scCard.text,/SC 2026/);
+ assert.equal((scCard.text.match(/SC 2027/g) || []).length,1);
+ assert.match(futureCard.text,/全文：2028-04-01/);
  let stopped=false;cards[0].children[0].listeners.click({stopPropagation(){stopped=true}});assert.ok(stopped);
  // New cards made by search/filter receive their own details; removed old cards don't affect them.
  const repeated=new Element('div');window.ConferenceDeadlines.attach(repeated,{abbr:'HPDC',id:'HPDC'});
