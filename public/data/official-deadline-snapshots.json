@@ -90,6 +90,57 @@
         "status": "linked",
         "url": "https://middleware2027r1.hotcrp.com/"
       }
+    },
+    {
+      "acronym": "CCGRID",
+      "catalogue_ids": [
+        "ccgrid_ieee_acm_international_symposium_on_cluster_cloud_and_grid_computing_6a38d1a6"
+      ],
+      "year": 2027,
+      "source_kind": "official_snapshot",
+      "verified_at": "2026-11-19",
+      "timezone": "AoE（摘要与全文截止；官网未列具体时刻）",
+      "dates": {
+        "abstract": "2026-11-24",
+        "paper": "2026-12-01",
+        "notification": "2027-02-01",
+        "camera_ready": "2027-03-16"
+      },
+      "conference_date": "2027-05-24 至 2027-05-27",
+      "place": "美国得克萨斯州达拉斯–沃思堡",
+      "sources": [
+        "https://hpcclab.org/ccgrid27-call-for-papers/",
+        "https://hpcclab.org/ccgrid27/"
+      ],
+      "submission": {
+        "status": "linked",
+        "url": "https://easychair.org/conferences/?conf=ccgrid2027"
+      }
+    },
+    {
+      "acronym": "OSDI",
+      "catalogue_ids": [
+        "osdi_usenix_symposium_on_operating_systems_design_and_implementation_6118b4a3"
+      ],
+      "year": 2027,
+      "source_kind": "official_snapshot",
+      "verified_at": "2026-11-19",
+      "timezone": "UTC（摘要与全文截止；北京时间次日 06:59）",
+      "dates": {
+        "abstract": "2026-12-01 22:59",
+        "paper": "2026-12-08 22:59",
+        "notification": "2027-03-16",
+        "camera_ready": "2027-06-03"
+      },
+      "conference_date": "2027-07-07 至 2027-07-09",
+      "place": "美国巴尔的摩，Hyatt Regency Baltimore Inner Harbor",
+      "sources": [
+        "https://www.usenix.org/conference/osdi27/call-for-papers"
+      ],
+      "submission": {
+        "status": "linked",
+        "url": "https://osdi27.usenix.hotcrp.com/"
+      }
     }
   ]
 }
