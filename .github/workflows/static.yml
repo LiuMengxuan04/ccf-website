@@ -7,6 +7,8 @@ on:
     branches: ["main"]
 
   # Allows you to run this workflow manually from the Actions tab
+  schedule:
+    - cron: "17 2 * * *" # daily 10:17 Asia/Shanghai (UTC+8)
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
@@ -31,13 +33,42 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate CCF catalogue
+        run: python scripts/validate_data.py
+      - name: Test official CFP adapter
+        run: python -m unittest discover -s tests -v
+      - name: Restore last valid official snapshot
+        uses: actions/cache/restore@v4
+        with:
+          path: public/data/hpdc-2027.json
+          key: hpdc-2027-v1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: hpdc-2027-v1-
+      - name: Refresh official HPDC information
+        run: python scripts/refresh_hpdc.py
+      - name: Preserve snapshot for future refreshes
+        uses: actions/cache/save@v4
+        with:
+          path: public/data/hpdc-2027.json
+          key: hpdc-2027-v1-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      - name: Stage public files only
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          cp -R css js public _site/
+          if [ -f CNAME ]; then cp CNAME _site/; fi
+          if [ -f .nojekyll ]; then cp .nojekyll _site/; fi
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
-          path: '.'
+          path: '_site'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

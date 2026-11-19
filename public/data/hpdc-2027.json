@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "data": {
+    "conference": "HPDC",
+    "year": 2027,
+    "dates": {
+      "abstract": "2027-01-11",
+      "paper": "2027-01-18",
+      "notification": "2027-03-30"
+    },
+    "timezone": "AoE (UTC−12)",
+    "submission": {
+      "url": "https://hpdc27.hotcrp.com/",
+      "status": "linked"
+    },
+    "sources": [
+      "https://hpdc.sci.utah.edu/2027/calls-cfp.html",
+      "https://hpdc.sci.utah.edu/2027/"
+    ]
+  },
+  "updated_at": "2026-11-19T08:22:48+00:00",
+  "verified_at": "2026-11-19T08:22:48+00:00",
+  "checked_at": "2026-11-19T08:22:48+00:00",
+  "refresh_status": "ok"
+}

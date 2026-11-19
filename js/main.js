@@ -285,21 +285,21 @@ class CCFDirectory {
             
             <div class="item-footer">
                 <div class="publisher">${this.escapeHtml(item.publisher)}</div>
-                <a href="${this.escapeHtml(item.website)}" target="_blank" rel="noopener noreferrer" 
+                ${item.website ? `<a href="${this.escapeHtml(item.website)}" target="_blank" rel="noopener noreferrer"
                    class="website-link" onclick="event.stopPropagation()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                         <polyline points="15,3 21,3 21,9"></polyline>
                         <line x1="10" y1="14" x2="21" y2="3"></line>
                     </svg>
-                    官网
-                </a>
+                    目录链接
+                </a>` : `<span class="publisher">官方目录未提供链接</span>`}
             </div>
         `;
 
         // 添加点击事件
         div.addEventListener('click', () => {
-            window.open(item.website, '_blank', 'noopener,noreferrer');
+            if (item.website) window.open(item.website, '_blank', 'noopener,noreferrer');
         });
 
         return div;
