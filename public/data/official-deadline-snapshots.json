@@ -47,6 +47,49 @@
         "https://sc27.supercomputing.org/all-dates-deadlines/",
         "https://sc27.supercomputing.org/attendees/denver/"
       ]
+    },
+    {
+      "acronym": "Middleware",
+      "catalogue_ids": [
+        "middleware_international_middleware_conference_2aca2229"
+      ],
+      "year": 2027,
+      "source_kind": "official_snapshot",
+      "verified_at": "2026-11-19",
+      "timezone": "冬季投稿截止：AoE（UTC−12）；夏季投稿时刻及时区：官方暂未公布",
+      "rounds": [
+        {
+          "label": "冬季轮 · HotCRP 已核验",
+          "dates": {
+            "abstract": "2026-11-27 00:00",
+            "paper": "2026-12-04 00:00",
+            "notification": "2027-03-29",
+            "camera_ready": "2027-05-07"
+          },
+          "comment": "北京时间：摘要 11 月 27 日 20:00，全文 12 月 4 日 20:00。初筛拒稿通知：2 月 2 日；作者回复：3 月 3–7 日。"
+        },
+        {
+          "label": "夏季轮 · 日期以 CFP 为准",
+          "dates": {
+            "abstract": "2027-05-28",
+            "paper": "2027-06-04",
+            "notification": "2027-09-13",
+            "camera_ready": "2027-10-15"
+          },
+          "comment": "提交入口见来源 3；具体时刻及时区以夏季投稿系统公布为准。初筛拒稿通知：7 月 13 日；作者回复：8 月 18–22 日。"
+        }
+      ],
+      "conference_date": "2027-12-13 至 2027-12-17",
+      "place": "日本京都",
+      "sources": [
+        "https://middleware-conf.github.io/2027/call-for-papers/",
+        "https://middleware2027r1.hotcrp.com/deadlines",
+        "https://middleware2027r2.hotcrp.com/"
+      ],
+      "submission": {
+        "status": "linked",
+        "url": "https://middleware2027r1.hotcrp.com/"
+      }
     }
   ]
 }
