@@ -25,10 +25,10 @@ class Element {
 const document={createElement:tag=>new Element(tag),createTextNode:text=>text};
 const script = fs.readFileSync('js/conference-updates.js','utf8');
 class FixtureDate extends Date { static now(){ return Date.parse('2026-11-19T09:00:00Z'); } }
-function browserFixture(refresh_status, fetched_at = community.fetched_at, extras = []) {
+function browserFixture(refresh_status, fetched_at = community.fetched_at, extras = [], officialData = official, date = FixtureDate) {
  const window={document};
  const snapshot={schema_version:1,refresh_status,checked_at:'2026-11-19T08:00:00Z',conferences:[{...community,fetched_at}, ...extras]};
- vm.runInNewContext(script,{window,document,URL,Date:FixtureDate,console,fetch:async url=>({ok:true,json:async()=>url.includes('hpdc')?hpdc:url.includes('official-deadline')?official:snapshot})});
+ vm.runInNewContext(script,{window,document,URL,Date:date,console,fetch:async url=>({ok:true,json:async()=>url.includes('hpdc')?hpdc:url.includes('official-deadline')?officialData:snapshot})});
  return window.ConferenceDeadlines;
 }
 const window={ConferenceDeadlines:browserFixture('ok')};
@@ -73,6 +73,38 @@ const window={ConferenceDeadlines:browserFixture('ok')};
  assert.match(middlewareCard.text,/摘要注册 2027-05-28(?! \d{2}:)/);
  assert.match(middlewareCard.text,/全文投稿 2027-06-04(?! \d{2}:)/);
  assert.match(middlewareCard.text,/夏季投稿时刻及时区：官方暂未公布/);
+ // End-to-end regressions with the checked-in community placeholders and the actual official snapshots.
+ const communityData = JSON.parse(fs.readFileSync('public/data/conference-deadlines.json'));
+ const watched = ['FAST','NSDI','CSCW','LICS'];
+ const examples = communityData.conferences.filter(r => watched.includes(r.acronym));
+ class November21 extends Date { static now(){ return Date.parse('2026-11-21T18:00:00Z'); } }
+ const renderer = browserFixture('ok',community.fetched_at,examples,official,November21);
+ const watchCards = {};
+ for (const name of watched) {
+  const record = official.conferences.find(r => r.acronym === name);
+  watchCards[name] = new Element('div');
+  renderer.attach(watchCards[name],{abbr:name,id:record.catalogue_ids[0]});
+ }
+ const rollingDoc = examples.find(r => r.acronym === 'CSCW');
+ const fallback = new Element('div');
+ browserFixture('ok',community.fetched_at,[rollingDoc],null,November21).attach(fallback,{abbr:'CSCW',id:rollingDoc.catalogue_ids[0]});
+ await new Promise(resolve=>setImmediate(resolve));
+ for (const name of ['FAST','NSDI']) {
+  const summary = watchCards[name].children[0].children[0].text;
+  assert.match(summary,/2027 投稿信息.*录用通知：2026-12-08/);
+  assert.doesNotMatch(summary,/2028 投稿信息|全文：2026-09/);
+  assert.match(watchCards[name].text,new RegExp(name+' 2028'));
+  assert.match(watchCards[name].text,/春季轮.*秋季轮/);
+ }
+ assert.match(watchCards.FAST.text,/终稿 2027-01-26 23:59/);
+ assert.match(watchCards.NSDI.text,/终稿 2027-03-04(?! \d{2}:)/);
+ assert.match(watchCards.CSCW.text,/没有单独的会议投稿截止/);
+ assert.match(watchCards.CSCW.text,/PACM HCI\/CSCW.*ToCHI/);
+ assert.match(fallback.text,/投稿说明 · 展开查看/);
+ assert.equal(fallback.text.split(rollingDoc.rounds[0].comment).length-1,1);
+ assert.match(watchCards.LICS.text,/摘要注册 2027-01-14.*全文投稿 2027-01-21.*录用通知 2027-04-15/);
+ assert.match(watchCards.LICS.text,/3 月 25–28 日/);
+ assert.doesNotMatch(watchCards.LICS.text,/官方列出的投稿入口/);
  let stopped=false;cards[0].children[0].listeners.click({stopPropagation(){stopped=true}});assert.ok(stopped);
  // New cards made by search/filter receive their own details; removed old cards don't affect them.
  const repeated=new Element('div');window.ConferenceDeadlines.attach(repeated,{abbr:'HPDC',id:'HPDC'});

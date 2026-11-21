@@ -141,6 +141,124 @@
         "status": "linked",
         "url": "https://osdi27.usenix.hotcrp.com/"
       }
+    },
+    {
+      "acronym": "FAST",
+      "catalogue_ids": [
+        "fast_usenix_conference_on_file_and_storage_technologies_b303882c"
+      ],
+      "year": 2027,
+      "source_kind": "official_snapshot",
+      "verified_at": "2026-11-21",
+      "timezone": "AoE（全文、作者回复结束和终稿）；录用通知仅公布日期",
+      "conference_date": "2027-02-23 至 2027-02-25",
+      "place": "美国华盛顿州伦顿",
+      "sources": [
+        "https://www.usenix.org/conference/fast27/call-for-papers"
+      ],
+      "rounds": [
+        {
+          "label": "春季轮",
+          "dates": {
+            "paper": "2026-03-17 23:59",
+            "rebuttal": "2026-05-20 23:59",
+            "notification": "2026-06-04",
+            "camera_ready": "2026-07-28 23:59"
+          }
+        },
+        {
+          "label": "秋季轮",
+          "dates": {
+            "paper": "2026-09-15 23:59",
+            "rebuttal": "2026-11-19 23:59",
+            "notification": "2026-12-08",
+            "camera_ready": "2027-01-26 23:59"
+          }
+        }
+      ]
+    },
+    {
+      "acronym": "NSDI",
+      "catalogue_ids": [
+        "nsdi_symposium_on_network_system_design_and_implementation_000d5e5e"
+      ],
+      "year": 2027,
+      "source_kind": "official_snapshot",
+      "verified_at": "2026-11-21",
+      "timezone": "美国东部夏令时（UTC−4，仅摘要和全文）；录用通知及终稿仅公布日期",
+      "conference_date": "2027-05-11 至 2027-05-13",
+      "place": "美国罗德岛州普罗维登斯",
+      "sources": [
+        "https://www.usenix.org/conference/nsdi27/call-for-papers"
+      ],
+      "rounds": [
+        {
+          "label": "春季轮",
+          "dates": {
+            "abstract": "2026-04-16 23:59",
+            "paper": "2026-04-23 23:59",
+            "notification": "2026-07-23",
+            "camera_ready": "2026-10-20"
+          }
+        },
+        {
+          "label": "秋季轮",
+          "dates": {
+            "abstract": "2026-09-10 23:59",
+            "paper": "2026-09-17 23:59",
+            "notification": "2026-12-08",
+            "camera_ready": "2027-03-04"
+          }
+        }
+      ]
+    },
+    {
+      "acronym": "CSCW",
+      "catalogue_ids": [
+        "cscw_acm_conference_on_computer_supported_cooperative_work_and_social_computing_0a3585d1"
+      ],
+      "year": 2027,
+      "source_kind": "official_snapshot",
+      "verified_at": "2026-11-21",
+      "timezone": "不适用（无统一会议投稿截止）",
+      "conference_date": "2027-10-16 至 2027-10-20",
+      "place": "美国宾夕法尼亚州费城",
+      "sources": [
+        "https://cscw.acm.org/2027/submit/"
+      ],
+      "rounds": [
+        {
+          "label": "期刊投稿",
+          "dates": {},
+          "comment": "本届没有单独的会议投稿截止。论文通过 PACM HCI/CSCW 或符合选题范围的 ToCHI 审稿，在会议议程确定前获接收即可受邀报告。"
+        }
+      ]
+    },
+    {
+      "acronym": "LICS",
+      "catalogue_ids": [
+        "lics_acm_ieee_symposium_on_logic_in_computer_science_1c3bc6ca"
+      ],
+      "year": 2027,
+      "source_kind": "official_snapshot",
+      "verified_at": "2026-11-21",
+      "timezone": "AoE（UTC−12）",
+      "conference_date": "2027-06-21 至 2027-06-24",
+      "place": "加拿大蒙特利尔，魁北克大学蒙特利尔分校",
+      "sources": [
+        "https://lics.siglog.org/lics27/cfp.php"
+      ],
+      "rounds": [
+        {
+          "label": "常规论文",
+          "dates": {
+            "abstract": "2027-01-14",
+            "paper": "2027-01-21",
+            "notification": "2027-04-15"
+          },
+          "comment": "作者回复：2027 年 3 月 25–28 日。官网将另行公布 HotCRP 投稿链接。"
+        }
+      ]
     }
   ]
 }

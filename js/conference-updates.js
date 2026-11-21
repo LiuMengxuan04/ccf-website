@@ -8,7 +8,7 @@
     if (!item || typeof item !== 'object' || !/^[\w .&/-]{1,60}$/.test(item.acronym || item.conference || '') || !Number.isInteger(item.year)) return null;
     const cleanDates = values => Object.fromEntries(Object.entries(values || {}).filter(([key, value]) => key in dateLabels && typeof value === 'string' && /^\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}(?::\d{2})?)?$/.test(value) && Number.isFinite(Date.parse(value))));
     const dates = cleanDates(item.dates);
-    const rounds = (Array.isArray(item.rounds) ? item.rounds : []).map(r => ({...r, dates:cleanDates(r.dates)})).filter(r => Object.keys(r.dates).length);
+    const rounds = (Array.isArray(item.rounds) ? item.rounds : []).filter(r => r && typeof r === 'object').map(r => ({...r, comment:typeof r.comment === 'string' ? r.comment.trim() : '', dates:cleanDates(r.dates)})).filter(r => Object.keys(r.dates).length || r.comment);
     const sources = (Array.isArray(item.sources) ? item.sources : []).map(safeURL).filter(Boolean);
     const community = item.source_kind === 'community';
     if ((!Object.keys(dates).length && !rounds.length && !item.conference_date) || !sources.length || !Number.isFinite(Date.parse(community ? item.fetched_at : item.verified_at))) return null;
@@ -39,13 +39,28 @@
     const matches = data.filter(r => Array.isArray(r.catalogue_ids) ? r.catalogue_ids.map(String).includes(String(item.id)) : r.acronym === 'HPDC' && item.abbr === 'HPDC').sort((a,b) => b.year-a.year);
     const officialYears = new Set(matches.filter(r => r.source_kind === 'official_snapshot').map(r => r.year));
     const editions = matches.filter(r => r.source_kind !== 'community' || !officialYears.has(r.year));
-    const past = value => Boolean(value) && Date.now()-Date.parse(value.slice(0,10)+'T00:00:00Z')>2*86400000;
+    // Use the end of the calendar day in UTC−12 as the latest possible end of a date.
+    const past = value => Boolean(value) && Date.now() >= Date.parse(value.slice(0,10)+'T00:00:00Z') + 36*3600000;
+    const milestones = record => [
+      ...Object.entries(record.dates),
+      ...record.rounds.flatMap(round => Object.entries(round.dates)),
+    ].filter(([, date]) => !past(date)).sort((a,b) => a[1].localeCompare(b[1]));
+    // A later TBD placeholder must not hide an earlier edition's upcoming milestone.
+    const selected = editions.find(record => milestones(record).length) || editions[0];
+    const upcoming = selected ? milestones(selected) : [];
+    const next = upcoming.find(([key]) => key === 'paper') || upcoming[0];
+    const paper = selected?.dates.paper || selected?.rounds[0]?.dates.paper;
+    const roundCount = selected?.rounds.filter(round => Object.keys(round.dates).length).length || 0;
+    const prefix = roundCount > 1 ? roundCount + ' 轮投稿 · ' : '';
+    const headline = !selected ? '暂无核实数据' : next
+      ? prefix + (next[0] === 'paper' ? '全文' : dateLabels[next[0]]) + '：' + next[1]
+      : roundCount > 1 ? prefix + '展开查看'
+      : paper ? '全文（已过）：' + paper
+      : selected.rounds.some(round => round.comment) ? '投稿说明 · 展开查看'
+      : selected.conference_date ? '会期：' + selected.conference_date : '全文日期暂无 · 展开查看';
     details.replaceChildren();
     const summary = el('summary', '', 'deadline-summary');
-    summary.append(el('span', editions.length ? `${editions[0].year} 投稿信息` : '投稿信息'));
-    const latest = editions[0];
-    const paper = latest?.dates.paper || latest?.rounds[0]?.dates.paper;
-    const headline = !latest ? '暂无核实数据' : latest.rounds.length > 1 ? latest.rounds.length + ' 轮投稿 · 展开查看' : paper ? (past(paper) ? '全文（已过）：' : '全文：') + paper : latest.conference_date ? '会期：' + latest.conference_date : '全文日期暂无 · 展开查看';
+    summary.append(el('span', selected ? `${selected.year} 投稿信息` : '投稿信息'));
     summary.append(el('strong', headline));
     details.append(summary);
     const body = el('div', '', 'deadline-body'); details.append(body);
@@ -57,10 +72,12 @@
       if (record.place) body.append(el('p', '地点：' + record.place));
       const rounds = record.rounds.length ? record.rounds : [{label:'投稿日期',dates:record.dates}];
       for (const round of rounds) {
-        if (record.rounds.length) body.append(el('h5',round.label || '投稿轮次'));
-        const dl = el('dl');
-        for (const [key,label] of Object.entries(dateLabels)) if (round.dates[key]) dl.append(el('dt',label),el('dd',round.dates[key]));
-        body.append(dl);
+        if (record.rounds.length) body.append(el('h5', round.label && round.label !== round.comment ? round.label : '投稿说明'));
+        if (Object.keys(round.dates).length) {
+          const dl = el('dl');
+          for (const [key,label] of Object.entries(dateLabels)) if (round.dates[key]) dl.append(el('dt',label),el('dd',round.dates[key]));
+          body.append(dl);
+        }
         // Only show elapsed status once it is safely past in all timezones.
         if (past(round.dates.paper)) body.append(el('p','该轮所列全文日期已过。'));
         if (round.comment) body.append(el('p',round.comment));
